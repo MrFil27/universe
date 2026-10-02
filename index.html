@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Atlante del Cosmo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --night: #060b1f;
+            --ink: #efe6cf;
+            --ink-soft: rgba(239, 230, 207, .62);
+            --ink-faint: rgba(239, 230, 207, .28);
+            --gold: #d9b56c;
+            --gold-bright: #f0cf8a;
+            --panel: rgba(8, 14, 38, .62);
+            --rule: rgba(217, 181, 108, .28);
+            box-sizing: border-box;
+            padding-top: env(safe-area-inset-top, 0px);
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root:not([data-theme="light"]) {
+                --night: #060b1f;
+                --ink: #efe6cf;
+                --ink-soft: rgba(239, 230, 207, .62);
+                --ink-faint: rgba(239, 230, 207, .28);
+                --gold: #d9b56c;
+                --gold-bright: #f0cf8a;
+                --panel: rgba(8, 14, 38, .62);
+                --rule: rgba(217, 181, 108, .28);
+            }
+        }
+
+        :root[data-theme="dark"] {
+            --night: #060b1f;
+            --ink: #efe6cf;
+            --ink-soft: rgba(239, 230, 207, .62);
+            --ink-faint: rgba(239, 230, 207, .28);
+            --gold: #d9b56c;
+            --gold-bright: #f0cf8a;
+            --panel: rgba(8, 14, 38, .62);
+            --rule: rgba(217, 181, 108, .28);
+        }
+
+        html {
+            height: 100%;
+            scroll-padding-top: env(safe-area-inset-top, 0px)
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: inherit
+        }
+
+        body {
+            margin: 0;
+            height: 100%;
+            overflow: hidden;
+            background: var(--night);
+            color: var(--ink);
+            font-family: "Cormorant Garamond", "EB Garamond", Garamond, Georgia, "Times New Roman", serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        #c {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: block;
+            touch-action: none;
+            cursor: grab
+        }
+
+        #c.drag {
+            cursor: grabbing
+        }
+
+        #labels {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden
+        }
+
+        .lbl {
+            position: absolute;
+            left: 0;
+            top: 0;
+            white-space: nowrap;
+            font-style: italic;
+            font-size: 15px;
+            color: var(--ink-soft);
+            opacity: 0;
+            transition: opacity .5s;
+            will-change: transform;
+            text-shadow: 0 0 8px rgba(6, 11, 31, .9);
+        }
+
+        .lbl.small {
+            font-size: 13px
+        }
+
+        .lbl.tap {
+            pointer-events: auto;
+            cursor: pointer;
+            padding: 12px 14px;
+            margin: -12px -14px
+        }
+
+        .lbl.pulse {
+            animation: pulse .6s ease
+        }
+
+        @keyframes pulse {
+            50% {
+                color: var(--gold-bright)
+            }
+        }
+
+        .lbl.gold {
+            color: var(--gold-bright);
+            font-size: 17px
+        }
+
+        .lbl.here {
+            color: var(--gold-bright);
+            font-style: normal;
+            font-variant: small-caps;
+            letter-spacing: .06em
+        }
+
+        #hud {
+            position: fixed;
+            pointer-events: none;
+            top: calc(env(safe-area-inset-top, 0px) + 22px);
+            left: calc(env(safe-area-inset-left, 0px) + 24px);
+            right: 24px;
+            transition: opacity .45s;
+        }
+
+        #hud.out {
+            opacity: 0
+        }
+
+        .plate {
+            font-size: 16px;
+            font-variant: small-caps;
+            letter-spacing: .08em;
+            color: var(--gold)
+        }
+
+        h1 {
+            font-weight: 500;
+            font-size: clamp(38px, 7vw, 72px);
+            line-height: .95;
+            margin: 4px 0 8px;
+            letter-spacing: -.01em
+        }
+
+        .sub {
+            font-style: italic;
+            font-size: clamp(17px, 2.3vw, 21px);
+            line-height: 1.35;
+            color: var(--ink-soft);
+            max-width: 32ch;
+            margin: 0
+        }
+
+        #nav {
+            position: fixed;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+            padding: 0 12px;
+        }
+
+        .arrow {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: 1px solid var(--rule);
+            background: var(--panel);
+            color: var(--ink);
+            font: inherit;
+            font-size: 20px;
+            line-height: 1;
+            cursor: pointer;
+            -webkit-backdrop-filter: blur(8px);
+            backdrop-filter: blur(8px);
+            flex: none;
+        }
+
+        .arrow:disabled {
+            opacity: .3;
+            cursor: default
+        }
+
+        .steps {
+            display: flex;
+            gap: 2px
+        }
+
+        .step {
+            background: none;
+            border: 0;
+            color: var(--ink-faint);
+            font: inherit;
+            font-size: 15px;
+            cursor: pointer;
+            padding: 8px 9px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            transition: color .3s;
+        }
+
+        .step .num {
+            font-variant: small-caps;
+            font-size: 16px
+        }
+
+        .step .name {
+            font-style: italic
+        }
+
+        .step[aria-current="true"] {
+            color: var(--gold-bright)
+        }
+
+        .step:hover {
+            color: var(--ink-soft)
+        }
+
+        button:focus-visible {
+            outline: 1px solid var(--gold-bright);
+            outline-offset: 3px
+        }
+
+        @media (max-width:700px) {
+            .step .name {
+                display: none
+            }
+
+            .step {
+                padding: 8px 10px
+            }
+        }
+
+        #hint {
+            position: fixed;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            width: max-content;
+            max-width: 90vw;
+            bottom: calc(env(safe-area-inset-bottom, 0px) + 84px);
+            font-style: italic;
+            font-size: 15px;
+            color: var(--ink-faint);
+            transition: opacity 1s;
+            pointer-events: none;
+        }
+
+        #hint.out {
+            opacity: 0
+        }
+
+        #fleur {
+            position: fixed;
+            left: 0;
+            top: 0;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 2s
+        }
+
+        #fleur.show {
+            opacity: 1
+        }
+
+        #fleur path {
+            fill: none;
+            stroke: var(--gold);
+            stroke-width: 1.1;
+            vector-effect: non-scaling-stroke;
+            opacity: .5;
+            stroke-dasharray: 1;
+            stroke-dashoffset: 1
+        }
+
+        #fleur.show path {
+            animation: draw 4s ease forwards
+        }
+
+        @keyframes draw {
+            to {
+                stroke-dashoffset: 0
+            }
+        }
+
+        #card {
+            position: fixed;
+            left: 50%;
+            width: min(400px, calc(100% - 32px));
+            bottom: calc(env(safe-area-inset-bottom, 0px) + 80px);
+            transform: translate(-50%, 14px);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .9s, transform .9s;
+            background: var(--panel);
+            border: 1px solid var(--rule);
+            border-radius: 3px;
+            padding: 18px 22px 20px;
+            -webkit-backdrop-filter: blur(14px);
+            backdrop-filter: blur(14px);
+        }
+
+        #card.show {
+            opacity: 1;
+            transform: translate(-50%, 0);
+            pointer-events: auto
+        }
+
+        #card h2 {
+            margin: 0;
+            font-weight: 500;
+            font-size: 34px;
+            color: var(--gold-bright);
+            line-height: 1
+        }
+
+        #card .when {
+            margin: 2px 0 10px;
+            font-style: italic;
+            color: var(--gold);
+            font-size: 16px
+        }
+
+        #card p {
+            margin: 0;
+            font-size: 18px;
+            line-height: 1.45;
+            color: var(--ink)
+        }
+
+        #card .sign {
+            margin-top: 10px;
+            font-style: italic;
+            color: var(--ink-soft)
+        }
+
+        #card .x {
+            position: absolute;
+            top: 8px;
+            right: 10px;
+            background: none;
+            border: 0;
+            color: var(--ink-soft);
+            font: inherit;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 4px 8px
+        }
+
+        #snap {
+            position: fixed;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 1px solid var(--rule);
+            right: calc(env(safe-area-inset-right, 0px) + 18px);
+            bottom: calc(env(safe-area-inset-bottom, 0px) + 84px);
+            background: var(--panel);
+            color: var(--gold-bright);
+            font-size: 20px;
+            cursor: pointer;
+            display: none;
+            -webkit-backdrop-filter: blur(8px);
+            backdrop-filter: blur(8px);
+        }
+
+        #snap.on {
+            display: block
+        }
+
+        #fade {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #060b1f;
+            opacity: 1;
+            pointer-events: none;
+            transition: opacity .55s
+        }
+
+        #nogl {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            text-align: center;
+            font-size: 20px
+        }
+
+        #nogl[hidden] {
+            display: none
+        }
+
+        #sampler {
+            position: absolute;
+            width: 0;
+            height: 0;
+            overflow: hidden;
+            visibility: hidden
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            #fleur.show path {
+                animation: none;
+                stroke-dashoffset: 0
+            }
+
+            #card,
+            #hud,
+            #fade {
+                transition: none
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="c" aria-label="Mappa interattiva dell'universo"></canvas>
+    <div id="labels"></div>
+
+    <svg id="fleur" viewBox="0 0 100 110" aria-hidden="true"></svg>
+    <svg id="sampler" viewBox="0 0 100 110" aria-hidden="true"></svg>
+
+    <header id="hud">
+        <div class="plate" id="plate">Tavola I</div>
+        <h1 id="title">Il cielo</h1>
+        <p class="sub" id="sub"></p>
+    </header>
+
+    <div id="hint">Trascina per esplorare, pizzica o scorri per lo zoom</div>
+
+    <div id="card" role="dialog" aria-label="Lilium">
+        <button class="x" id="cardX" aria-label="Chiudi">×</button>
+        <h2>Lilium</h2>
+        <div class="when">Il Giglio, costellazione del 1674</div>
+        <p>Quattro stelle sopra l'Ariete che per un secolo furono un giglio. Poi le mappe le dimenticarono.</p>
+        <p class="sign">Qualcuno, però, le guarda ancora.</p>
+    </div>
+
+    <button id="snap" aria-label="Allinea la vista">⚜</button>
+
+    <nav id="nav" aria-label="Tavole">
+        <button class="arrow" id="prev" aria-label="Tavola precedente">‹</button>
+        <div class="steps" id="steps"></div>
+        <button class="arrow" id="next" aria-label="Tavola successiva">›</button>
+    </nav>
+
+    <div id="fade"></div>
+    <div id="nogl" hidden>Questo browser non riesce a disegnare il cielo. Prova con Chrome, Firefox o Safari aggiornati.
+    </div>
+
+    <script>
+        (function () {
+            "use strict";
+            const TAU = Math.PI * 2;
+            const $ = s => document.querySelector(s);
+            const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+            const sstep = (e0, e1, x) => { const t = clamp((x - e0) / (e1 - e0), 0, 1); return t * t * (3 - 2 * t); };
+            const wrapPi = a => a - TAU * Math.round(a / TAU);
+            const deg = d => d * Math.PI / 180;
+            const hex = c => { const n = parseInt(c.slice(1), 16); return [(n >> 16 & 255) / 255, (n >> 8 & 255) / 255, (n & 255) / 255]; };
+            const mixc = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+            const rgba = (c, a) => "rgba(" + Math.round(c[0] * 255) + "," + Math.round(c[1] * 255) + "," + Math.round(c[2] * 255) + "," + a + ")";
+
+            /* ---------- vettori e matrici ---------- */
+            const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+            const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+            const norm = a => { const l = Math.hypot(a[0], a[1], a[2]) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };
+            const dirOf = (y, p) => [Math.cos(p) * Math.cos(y), Math.sin(p), -Math.cos(p) * Math.sin(y)];
+            const rotX = a => { const c = Math.cos(a), s = Math.sin(a); return [1, 0, 0, 0, c, -s, 0, s, c]; };
+            const rotY = a => { const c = Math.cos(a), s = Math.sin(a); return [c, 0, s, 0, 1, 0, -s, 0, c]; };
+            const rotZ = a => { const c = Math.cos(a), s = Math.sin(a); return [c, -s, 0, s, c, 0, 0, 0, 1]; };
+            const mul3 = (A, B) => { const o = new Array(9); for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) o[i * 3 + j] = A[i * 3] * B[j] + A[i * 3 + 1] * B[3 + j] + A[i * 3 + 2] * B[6 + j]; return o; };
+            const mv3 = (M, v) => [M[0] * v[0] + M[1] * v[1] + M[2] * v[2], M[3] * v[0] + M[4] * v[1] + M[5] * v[2], M[6] * v[0] + M[7] * v[1] + M[8] * v[2]];
+            const add3 = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+            const I3 = [1, 0, 0, 0, 1, 0, 0, 0, 1];
+
+            function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+            function gauss(r) { let u = 0; while (!u) u = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(TAU * r()); }
+
+            /* ---------- giglio ---------- */
+            const FLEUR = [
+                "M50 4 C61 22 66 44 56 70 L44 70 C34 44 39 22 50 4 Z",
+                "M43 70 C38 50 24 40 13 45 C5 49 5 61 13 64 C20 67 26 62 24 56 C29 57 35 62 38 72 Z",
+                "M57 70 C62 50 76 40 87 45 C95 49 95 61 87 64 C80 67 74 62 76 56 C71 57 65 62 62 72 Z",
+                "M28 71 H72 V79 H28 Z",
+                "M45 79 C42 90 36 98 29 103 C38 104 46 99 50 91 C54 99 62 104 71 103 C64 98 58 90 55 79 Z"
+            ];
+            const NS = "http://www.w3.org/2000/svg";
+            FLEUR.forEach(d => {
+                const a = document.createElementNS(NS, "path"); a.setAttribute("d", d); a.setAttribute("pathLength", "1"); $("#fleur").appendChild(a);
+                const b = document.createElementNS(NS, "path"); b.setAttribute("d", d); $("#sampler").appendChild(b);
+            });
+
+            /* ---------- canvas ---------- */
+            const canvas = $("#c");
+            const ctx = canvas.getContext("2d");
+            if (!ctx) { $("#nogl").textContent = "Questo browser non riesce a disegnare sul canvas. Prova con Chrome, Firefox o Safari aggiornati."; $("#nogl").hidden = false; $("#fade").style.opacity = 0; return; }
+            const buf = document.createElement("canvas"), bctx = buf.getContext("2d");
+            let W, H, DPR, BW, BH, bs, img, D, D32;
+            const BG = 0xFF1F0B06; // #060b1f in ABGR
+            function resize() {
+                DPR = Math.min(window.devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight;
+                canvas.width = Math.round(W * DPR); canvas.height = Math.round(H * DPR);
+                bs = Math.min(DPR, 1.5, Math.sqrt(1100000 / (W * H)));
+                BW = Math.max(4, Math.round(W * bs)); BH = Math.max(4, Math.round(H * bs));
+                buf.width = BW; buf.height = BH; img = bctx.createImageData(BW, BH); D = img.data; D32 = new Uint32Array(D.buffer);
+            }
+            window.addEventListener("resize", resize); resize();
+
+            /* ---------- camera ---------- */
+            const cam = { pos: [0, 0, 0], f: [1, 0, 0], r: [0, 0, 1], u: [0, 1, 0], focal: 1 };
+            let CM = I3;
+            function setCam(pos, f, fov) {
+                cam.pos = pos; cam.f = f; cam.r = norm(cross(f, [0, 1, 0])); cam.u = cross(cam.r, f);
+                cam.focal = (H / 2) / Math.tan(deg(fov) / 2);
+                CM = [cam.r[0], cam.r[1], cam.r[2], cam.u[0], cam.u[1], cam.u[2], f[0], f[1], f[2]];
+            }
+            function proj(p, near) {
+                const d0 = p[0] - cam.pos[0], d1 = p[1] - cam.pos[1], d2 = p[2] - cam.pos[2];
+                const cz = cam.f[0] * d0 + cam.f[1] * d1 + cam.f[2] * d2;
+                if (cz < (near || 0.05)) return null;
+                const k = cam.focal / cz;
+                return { x: W / 2 + (cam.r[0] * d0 + cam.r[1] * d1 + cam.r[2] * d2) * k, y: H / 2 - (cam.u[0] * d0 + cam.u[1] * d1 + cam.u[2] * d2) * k, z: cz, k };
+            }
+
+            /* ---------- nuvole di punti (disegnate pixel per pixel) ---------- */
+            function Cloud() { this.p = []; this.c = []; this.s = []; }
+            Cloud.prototype.add = function (x, y, z, col, m, s) { this.p.push(x, y, z); this.c.push(col[0] * m * 255, col[1] * m * 255, col[2] * m * 255); this.s.push(s); };
+            Cloud.prototype.build = function (o) {
+                o = o || {};
+                return {
+                    n: this.s.length, P: new Float32Array(this.p), C: new Float32Array(this.c), S: new Float32Array(this.s),
+                    ref: o.ref || 0, rot: null, pos: [0, 0, 0], tint: o.tint ? hex(o.tint) : null, tintAmt: 0, boost: 1, opacity: o.opacity == null ? 1 : o.opacity
+                };
+            };
+            function splat(x, y, s, r, g, b, o) {
+                const p = ((y | 0) * BW + (x | 0)) << 2;
+                const a = (s < 1 ? s * s : 1) * o;
+                D[p] += r * a; D[p + 1] += g * a; D[p + 2] += b * a;
+                if (s > 1.3) {
+                    const k = Math.min(1, (s - 1.3) / 2) * .5 * o, rk = r * k, gk = g * k, bk = b * k, q = BW << 2;
+                    D[p - 4] += rk; D[p - 3] += gk; D[p - 2] += bk; D[p + 4] += rk; D[p + 5] += gk; D[p + 6] += bk;
+                    D[p - q] += rk; D[p - q + 1] += gk; D[p - q + 2] += bk; D[p + q] += rk; D[p + q + 1] += gk; D[p + q + 2] += bk;
+                    if (s > 2.6) {
+                        const k2 = Math.min(1, (s - 2.6) / 2.5) * .3 * o, r2 = r * k2, g2 = g * k2, b2 = b * k2;
+                        D[p - q - 4] += r2; D[p - q - 3] += g2; D[p - q - 2] += b2; D[p - q + 4] += r2; D[p - q + 5] += g2; D[p - q + 6] += b2;
+                        D[p + q - 4] += r2; D[p + q - 3] += g2; D[p + q - 2] += b2; D[p + q + 4] += r2; D[p + q + 5] += g2; D[p + q + 6] += b2;
+                    }
+                }
+            }
+            function renderCloud(cl, sizeScale) {
+                if (cl.opacity <= 0) return;
+                const M = mul3(CM, cl.rot || I3);
+                const t = mv3(CM, [cl.pos[0] - cam.pos[0], cl.pos[1] - cam.pos[1], cl.pos[2] - cam.pos[2]]);
+                const P = cl.P, C = cl.C, S = cl.S, n = cl.n, ref = cl.ref, f = cam.focal * bs, hx = BW / 2, hy = BH / 2;
+                const ss = sizeScale * cl.boost * bs, op = cl.opacity, ta = cl.tintAmt;
+                const tr = cl.tint ? cl.tint[0] * 255 : 0, tg = cl.tint ? cl.tint[1] * 255 : 0, tb = cl.tint ? cl.tint[2] * 255 : 0;
+                const m0 = M[0], m1 = M[1], m2 = M[2], m3 = M[3], m4 = M[4], m5 = M[5], m6 = M[6], m7 = M[7], m8 = M[8], t0 = t[0], t1 = t[1], t2 = t[2];
+                for (let i = 0, j = 0; i < n; i++, j += 3) {
+                    const x = P[j], y = P[j + 1], z = P[j + 2];
+                    const cz = m6 * x + m7 * y + m8 * z + t2; if (cz < 0.05) continue;
+                    const k = f / cz;
+                    const sx = hx + (m0 * x + m1 * y + m2 * z + t0) * k; if (sx < 1 || sx >= BW - 1) continue;
+                    const sy = hy - (m3 * x + m4 * y + m5 * z + t1) * k; if (sy < 1 || sy >= BH - 1) continue;
+                    let s = S[i] * ss; if (ref) s *= ref / cz;
+                    let r = C[j], g = C[j + 1], b = C[j + 2];
+                    if (ta > 0) { const br = Math.max(r, g, b) / 255; r += (tr * br - r) * ta; g += (tg * br - g) * ta; b += (tb * br - b) * ta; }
+                    splat(sx, sy, s, r, g, b, op);
+                }
+            }
+
+            /* ---------- aloni ---------- */
+            const glowCache = {};
+            function glowImg(c) {
+                if (glowCache[c]) return glowCache[c];
+                const cv = document.createElement("canvas"); cv.width = cv.height = 64; const x = cv.getContext("2d");
+                const g = x.createRadialGradient(32, 32, 0, 32, 32, 32), col = hex(c);
+                g.addColorStop(0, rgba(col, 1)); g.addColorStop(.18, rgba(col, .5)); g.addColorStop(1, rgba(col, 0));
+                x.fillStyle = g; x.fillRect(0, 0, 64, 64); return glowCache[c] = cv;
+            }
+            function sprite(c, x, y, size, a) { if (size < .5) return; ctx.globalAlpha = a; ctx.drawImage(glowImg(c), x - size / 2, y - size / 2, size, size); ctx.globalAlpha = 1; }
+
+            /* ---------- etichette ---------- */
+            const labelsRoot = $("#labels"), labels = [];
+            function addLabel(text, pos, stage, cls) {
+                const el = document.createElement("div"); el.className = "lbl " + (cls || ""); el.textContent = text; labelsRoot.appendChild(el);
+                const L = { el, pos, stage, hidden: false }; labels.push(L); return L;
+            }
+
+            /* ================= TAVOLA I · CIELO ================= */
+            const R = 100;
+            function radec(h, d, r) { r = r || R; const a = h / 24 * TAU, dd = deg(d); return [Math.cos(dd) * Math.cos(a) * r, Math.sin(dd) * r, -Math.cos(dd) * Math.sin(a) * r]; }
+            const STARS = {
+                hamal: [2.120, 23.46, 2.0, "#ffd2a1"], sheratan: [1.910, 20.81, 2.6], mesarthim: [1.892, 19.29, 3.9],
+                a41: [2.833, 27.26, 3.6], a39: [2.798, 29.25, 4.5, "#ffd9b0"], a35: [2.725, 27.71, 4.6], a33: [2.678, 27.06, 5.3],
+                triA: [1.885, 29.58, 3.4], triB: [2.158, 34.99, 3.0], triG: [2.288, 33.85, 4.0],
+                aldebaran: [4.598, 16.51, 0.9, "#ffb27a"], elnath: [5.438, 28.61, 1.65], zTau: [5.627, 21.14, 3.0],
+                eTau: [4.477, 19.18, 3.5, "#ffd8a8"], gTau: [4.330, 15.63, 3.6, "#ffd8a8"], dTau: [4.382, 17.54, 3.8, "#ffd8a8"],
+                alcyone: [3.792, 24.10, 2.9, "#cfe0ff"], atlas: [3.820, 24.05, 3.6, "#cfe0ff"], electra: [3.748, 24.11, 3.7, "#cfe0ff"],
+                maia: [3.763, 24.37, 3.9, "#cfe0ff"], merope: [3.772, 23.95, 4.2, "#cfe0ff"], taygeta: [3.753, 24.47, 4.3, "#cfe0ff"],
+                alpheratz: [0.140, 29.09, 2.1], mirach: [1.162, 35.62, 2.05, "#ffc48f"], almach: [2.065, 42.33, 2.1, "#ffd09a"], dAnd: [0.655, 30.86, 3.3, "#ffd2a1"],
+                scheat: [23.063, 28.08, 2.4, "#ffb889"], markab: [23.080, 15.21, 2.5], algenib: [0.220, 15.18, 2.8, "#d6e4ff"],
+                caph: [0.153, 59.15, 2.3], schedar: [0.675, 56.54, 2.2, "#ffc996"], gCas: [0.945, 60.72, 2.4, "#cfe0ff"], ruchbah: [1.430, 60.24, 2.7], segin: [1.907, 63.67, 3.4],
+                mirfak: [3.405, 49.86, 1.8, "#fff1d6"], algol: [3.137, 40.96, 2.1, "#d6e4ff"], dPer: [3.715, 47.79, 3.0], gPer: [3.080, 53.51, 2.9], ePer: [3.965, 40.01, 2.9],
+                betelgeuse: [5.920, 7.41, 0.5, "#ffa36a"], rigel: [5.242, -8.20, 0.13, "#bcd2ff"], bellatrix: [5.418, 6.35, 1.6, "#cfe0ff"],
+                saiph: [5.797, -9.67, 2.1, "#cfe0ff"], alnitak: [5.680, -1.94, 1.8, "#cfe0ff"], alnilam: [5.603, -1.20, 1.7, "#cfe0ff"], mintaka: [5.533, -0.30, 2.2, "#cfe0ff"]
+            };
+            const starPos = {}, named = [];
+            Object.keys(STARS).forEach(k => {
+                const s = STARS[k]; starPos[k] = radec(s[0], s[1], 99);
+                named.push({ p: starPos[k], size: Math.max(1.4, 5.2 - s[2] * .9), col: s[3] || "#f6f2ff" });
+            });
+            const CONST = [
+                { name: "Ariete", id: "aries", lines: [["mesarthim", "sheratan"], ["sheratan", "hamal"], ["hamal", "a41"]] },
+                { name: "Triangolo", lines: [["triA", "triB"], ["triB", "triG"], ["triG", "triA"]] },
+                { name: "Toro", lines: [["gTau", "dTau"], ["dTau", "eTau"], ["eTau", "elnath"], ["gTau", "aldebaran"], ["aldebaran", "zTau"]] },
+                { name: "Andromeda", lines: [["alpheratz", "dAnd"], ["dAnd", "mirach"], ["mirach", "almach"]] },
+                { name: "Pegaso", lines: [["alpheratz", "scheat"], ["scheat", "markab"], ["markab", "algenib"], ["algenib", "alpheratz"]] },
+                { name: "Cassiopea", lines: [["caph", "schedar"], ["schedar", "gCas"], ["gCas", "ruchbah"], ["ruchbah", "segin"]] },
+                { name: "Perseo", lines: [["gPer", "mirfak"], ["mirfak", "dPer"], ["dPer", "ePer"], ["mirfak", "algol"]] },
+                { name: "Orione", lines: [["betelgeuse", "bellatrix"], ["betelgeuse", "alnitak"], ["bellatrix", "mintaka"], ["mintaka", "alnilam"], ["alnilam", "alnitak"], ["alnitak", "saiph"], ["mintaka", "rigel"], ["saiph", "rigel"]] }
+            ];
+            const skySegs = [];
+            let skyCloud, ariesLabel;
+            (function () {
+                const r = rng(7), c = new Cloud();
+                const tints = ["#cfdcff", "#ffffff", "#fff4dd", "#ffd9b0"].map(hex);
+                for (let i = 0; i < 2800; i++) {
+                    const v = norm([gauss(r), gauss(r), gauss(r)]);
+                    c.add(v[0] * R, v[1] * R, v[2] * R, tints[Math.floor(r() * 4)], .4 + .6 * r(), .7 + Math.pow(r(), 6) * 2.4);
+                }
+                const pole = norm(radec(12.857, 27.13, 1)), e1 = norm(cross(pole, [0, 1, 0])), e2 = cross(pole, e1), gc = norm(radec(17.76, -29, 1)), band = hex("#b8c4f0");
+                let n = 0;
+                while (n < 8000) {
+                    const lon = r() * TAU, lat = gauss(r) * .09 * (.6 + .8 * r()), cl = Math.cos(lat);
+                    const v = [0, 1, 2].map(i => e1[i] * Math.cos(lon) * cl + e2[i] * Math.sin(lon) * cl + pole[i] * Math.sin(lat));
+                    if (r() > .35 + .65 * Math.max(0, dot(v, gc))) continue;
+                    c.add(v[0] * R, v[1] * R, v[2] * R, band, .2 + .3 * r(), .6 + r() * .9); n++;
+                }
+                skyCloud = c.build();
+                CONST.forEach(k => {
+                    k.lines.forEach(l => skySegs.push([starPos[l[0]], starPos[l[1]]]));
+                    const ks = new Set(); k.lines.forEach(l => { ks.add(l[0]); ks.add(l[1]); });
+                    let cen = [0, 0, 0]; ks.forEach(s => cen = add3(cen, starPos[s])); cen = norm(cen).map(v => v * 98);
+                    const L = addLabel(k.name, cen, 0, k.id === "aries" ? "tap" : "");
+                    if (k.id === "aries") ariesLabel = L;
+                });
+                addLabel("Pleiadi", radec(3.78, 25.2, 98), 0, "small");
+            })();
+            const LIL = [["a33", "a35"], ["a35", "a41"], ["a35", "a39"], ["a39", "a41"]];
+            const LIL_RA = 2.758, LIL_DEC = 27.8;
+            const lilCenter = radec(LIL_RA, LIL_DEC, 98), lilUp = radec(LIL_RA, LIL_DEC + 1, 98);
+            const lilLabel = addLabel("Lilium", radec(LIL_RA, 26.2, 98), 0, "gold"); lilLabel.hidden = true;
+            let lilProg = 0;
+
+            const bgCloud = (function () {
+                const r = rng(99), c = new Cloud();
+                for (let i = 0; i < 3500; i++) { const v = norm([gauss(r), gauss(r), gauss(r)]); c.add(v[0] * 3000, v[1] * 3000, v[2] * 3000, hex(r() < .2 ? "#ffe2bf" : "#d9e2ff"), .3 + .5 * r(), .7 + Math.pow(r(), 5) * 2); }
+                return c.build();
+            })();
+
+            /* ================= TAVOLA II · SISTEMA SOLARE ================= */
+            const PLANETS = [
+                ["Mercurio", 6, .35, "#a9a29b", .24], ["Venere", 8.5, .6, "#e8c98e", .62], ["Terra", 11.5, .65, "#4f8fd8", 1], ["Marte", 14.5, .45, "#c96b47", 1.88],
+                ["Giove", 21, 1.7, "#d8b48a", 11.9, "#a8774f"], ["Saturno", 28, 1.4, "#e3cf9a", 29.5, "#c2a46c"], ["Urano", 34, 1, "#9fd8e0", 84], ["Nettuno", 39, .95, "#5a7fe0", 165]
+            ].map((p, i) => {
+                const r = rng(5 + i);
+                const orbit = []; for (let k = 0; k <= 96; k++) { const a = k / 96 * TAU; orbit.push([Math.cos(a) * p[1], 0, Math.sin(a) * p[1]]); }
+                const col = hex(p[3]);
+                return {
+                    name: p[0], dist: p[1], size: p[2], col: p[3], light: rgba(mixc(col, [1, 1, 1], .35), 1), dark: rgba(mixc(col, [0, 0, 0], .85), 1),
+                    band: p[5] || null, speed: .55 / Math.pow(p[4], .6), ang: r() * TAU, orbit, pos: [p[1], 0, 0]
+                };
+            });
+            let moonAng = 0;
+            PLANETS.forEach(p => addLabel(p.name, () => [p.pos[0], p.pos[1] - (p.size + 1.1), p.pos[2]], 1, "small"));
+            addLabel("Sole", [0, -4.6, 0], 1, "small");
+            const belt = (function () { const r = rng(55), c = new Cloud(), col = hex("#c8b9a0"); for (let i = 0; i < 1600; i++) { const a = r() * TAU, d = 16.6 + r() * 2.2; c.add(Math.cos(a) * d, gauss(r) * .25, Math.sin(a) * d, col, .3 + .4 * r(), .5 + r() * .8); } return c.build({ ref: 70 }); })();
+            let beltAng = 0;
+            const RING_TILT = rotX(.45);
+
+            /* ================= TAVOLA III · VIA LATTEA ================= */
+            function makeGalaxy(o) {
+                const r = rng(o.seed), c = new Cloud();
+                const cCore = hex(o.core || "#ffe2b0"), cMid = hex(o.mid || "#ffd9c4"), cOut = hex(o.out || "#9fb8ff"), cHII = hex("#ff8fb8");
+                const nb = Math.floor(o.n * (o.bulge == null ? .18 : o.bulge));
+                for (let i = 0; i < nb; i++) c.add(gauss(r) * o.R * .09, gauss(r) * o.R * .06, gauss(r) * o.R * .09, cCore, .5 + .5 * r(), .8 + r() * 1.6);
+                for (let i = 0; i < o.n - nb; i++) {
+                    const t = Math.pow(r(), .9), rad = o.R * (.08 + .92 * t), arm = Math.floor(r() * o.arms);
+                    const ang = arm / o.arms * TAU + t * o.twist + gauss(r) * (.28 * (1 - t) + .12), j = o.R * .025;
+                    const col = r() < .04 ? cHII : mixc(cMid, cOut, t);
+                    c.add(Math.cos(ang) * rad + gauss(r) * j, gauss(r) * o.thick * (1 - .6 * t), Math.sin(ang) * rad + gauss(r) * j, col, .35 + .65 * r(), .6 + r() * 1.5 + (r() < .02 ? 2 : 0));
+                }
+                return c.build({ ref: o.ref || 220 });
+            }
+            const galaxy = makeGalaxy({ n: 32000, R: 50, arms: 2, twist: 5.5, thick: 1.6, seed: 3 });
+            let galAng = 0;
+            const hereLocal = (function () { const a = .55 * 5.5 + .15; return [Math.cos(a) * 27.5, 0, Math.sin(a) * 27.5]; })();
+            const hereWorld = () => mv3(rotY(galAng), hereLocal);
+            addLabel("Sei qui", () => { const h = hereWorld(); return [h[0], h[1] - 2.8, h[2]]; }, 2, "here");
+
+            /* ================= TAVOLA IV · GRUPPO LOCALE ================= */
+            const mw = makeGalaxy({ n: 8000, R: 7, arms: 2, twist: 5.5, thick: .3, seed: 3, ref: 260 });
+            const m31 = makeGalaxy({ n: 12000, R: 11, arms: 2, twist: 6, thick: .4, seed: 11, ref: 260, out: "#b9c8ff" });
+            m31.pos = [70, 8, -25]; const M31_BASE = mul3(rotX(1.1), rotZ(.4));
+            const m33 = makeGalaxy({ n: 3500, R: 4, arms: 2, twist: 4, thick: .2, seed: 21, ref: 260, bulge: .08 });
+            m33.pos = [58, -14, -4]; const M33_BASE = rotX(.8);
+            const dwarfs = (function () {
+                const r = rng(31), c = new Cloud();
+                const blob = (cx, cy, cz, n, s, col) => { const h = hex(col); for (let i = 0; i < n; i++) c.add(cx + gauss(r) * s, cy + gauss(r) * s * .7, cz + gauss(r) * s, h, .35 + .5 * r(), .7 + r() * 1.2); };
+                blob(-9, -4, 6, 1300, 1.4, "#cfd8ff"); blob(-11, -6, 9, 650, .9, "#cfd8ff");
+                for (let i = 0; i < 36; i++) {
+                    const host = r() < .55 ? [0, 0, 0] : [70, 8, -25], d = 10 + r() * 16, a = r() * TAU, e = (r() - .5) * 1.4;
+                    blob(host[0] + Math.cos(a) * Math.cos(e) * d, host[1] + Math.sin(e) * d, host[2] + Math.sin(a) * Math.cos(e) * d, 80, .5, "#e8dcc8");
+                }
+                return c.build({ ref: 260 });
+            })();
+            let localAng = 0;
+            addLabel("Via Lattea", [0, 6, 0], 3);
+            addLabel("Andromeda", [70, -2, -25], 3);
+            addLabel("Galassia del Triangolo", [58, -23, -4], 3, "small");
+            addLabel("Nubi di Magellano", [-10, -13, 7], 3, "small");
+
+            /* ================= TAVOLA V · RAGNATELA COSMICA ================= */
+            const SECRET = { yaw: 2.25, pitch: .3, dist: 430 };
+            let webCloud, lily;
+            (function () {
+                const r = rng(42), nodes = [];
+                for (let i = 0; i < 70; i++) nodes.push([(r() - .5) * 360, (r() - .5) * 360, (r() - .5) * 360]);
+                const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+                const edges = new Map();
+                nodes.forEach((a, i) => nodes.map((b, j) => [j, dist(a, b)]).filter(x => x[0] !== i).sort((x, y) => x[1] - y[1]).slice(0, 3)
+                    .forEach(([j]) => edges.set(Math.min(i, j) + "-" + Math.max(i, j), [Math.min(i, j), Math.max(i, j)])));
+                const cA = hex("#6f7dff"), cB = hex("#c08cff"), cC = hex("#ffd7b0");
+                const list = [...edges.values()], total = list.reduce((s, [i, j]) => s + dist(nodes[i], nodes[j]), 0), per = 26000 / total;
+                const c = new Cloud();
+                list.forEach(([i, j]) => {
+                    const A = nodes[i], Z = nodes[j], n = Math.round(dist(A, Z) * per);
+                    for (let k = 0; k < n; k++) {
+                        const t = r(), s = 1.8 + 2.6 * (1 - Math.abs(t - .5) * 2);
+                        c.add(A[0] + (Z[0] - A[0]) * t + gauss(r) * s, A[1] + (Z[1] - A[1]) * t + gauss(r) * s, A[2] + (Z[2] - A[2]) * t + gauss(r) * s, mixc(cA, cB, r()), .3 + .5 * r(), .7 + r() * 1.3);
+                    }
+                });
+                nodes.forEach(nd => {
+                    for (let k = 0; k < 200; k++) c.add(nd[0] + gauss(r) * 5, nd[1] + gauss(r) * 5, nd[2] + gauss(r) * 5, cC, .3 + .55 * r(), .9 + r() * 1.3);
+                    for (let k = 0; k < 20; k++) c.add(nd[0] + gauss(r) * 1.4, nd[1] + gauss(r) * 1.4, nd[2] + gauss(r) * 1.4, cC, 1, 2.4);
+                });
+                for (let k = 0; k < 2500; k++) c.add((r() - .5) * 400, (r() - .5) * 400, (r() - .5) * 400, cA, .15 + .2 * r(), .6);
+                webCloud = c.build({ ref: 420 });
+
+                // il giglio anamorfico: punti sparsi in profondità che formano il fiore da un solo punto di vista
+                const paths = [...document.querySelectorAll("#sampler path")];
+                const lens = paths.map(p => p.getTotalLength()), tot = lens.reduce((a, b) => a + b, 0);
+                const d0 = dirOf(SECRET.yaw, SECRET.pitch), V = d0.map(v => v * SECRET.dist);
+                const f = norm(V.map(v => -v)), rg = norm(cross(f, [0, 1, 0])), up = cross(rg, f);
+                const k = Math.tan(deg(55 / 2)) * .62, l = new Cloud();
+                paths.forEach((p, i) => {
+                    const m = Math.round(2600 * lens[i] / tot);
+                    for (let j = 0; j < m; j++) {
+                        const pt = p.getPointAtLength(lens[i] * j / m);
+                        const sx = (pt.x - 50) / 58 + gauss(r) * .006, sy = -(pt.y - 55) / 58 + gauss(r) * .006;
+                        const d = norm([0, 1, 2].map(q => f[q] + rg[q] * sx * k + up[q] * sy * k)), t = SECRET.dist * (.72 + r() * .56);
+                        l.add(V[0] + d[0] * t, V[1] + d[1] * t, V[2] + d[2] * t, mixc(cA, cB, r()), .45 + .4 * r(), .9 + r() * 1.2);
+                    }
+                });
+                lily = l.build({ ref: 420, tint: "#ffcf86" });
+            })();
+
+            /* ================= TAVOLE ================= */
+            const stages = [
+                {
+                    mode: "sky", plate: "Tavola I", title: "Il cielo", sub: "Le costellazioni come le vediamo dalla Terra.", name: "Cielo",
+                    init: { yaw: 2.35 / 24 * TAU, pitch: deg(24), fov: 62 }
+                },
+                {
+                    mode: "orbit", plate: "Tavola II", title: "Il Sistema Solare", sub: "Una stella e otto pianeti. Distanze e dimensioni non sono in scala.", name: "Sistema Solare",
+                    center: [0, 0, 0], fov: 50, init: { yaw: .6, pitch: .45, dist: 72 }, min: 22, max: 150, spin: .035
+                },
+                {
+                    mode: "orbit", plate: "Tavola III", title: "La Via Lattea", sub: "Centinaia di miliardi di stelle. Il Sole sta in un braccio periferico.", name: "Via Lattea",
+                    center: [0, 0, 0], fov: 55, init: { yaw: .4, pitch: .85, dist: 125 }, min: 40, max: 260, spin: .03
+                },
+                {
+                    mode: "orbit", plate: "Tavola IV", title: "Il Gruppo Locale", sub: "La Via Lattea, Andromeda, il Triangolo e decine di galassie nane.", name: "Gruppo Locale",
+                    center: [32, 0, -12], fov: 55, init: { yaw: .9, pitch: .4, dist: 165 }, min: 50, max: 330, spin: .025
+                },
+                {
+                    mode: "orbit", plate: "Tavola V", title: "La ragnatela cosmica", sub: "Filamenti di galassie attorno a vuoti immensi. La struttura più grande che conosciamo.", name: "Universo",
+                    center: [0, 0, 0], fov: 55, init: { yaw: .6, pitch: .25, dist: 430 }, min: 150, max: 720, spin: .02
+                }
+            ];
+            const C = { yaw: 0, pitch: 0, dist: 0, fov: 60 }, T = { yaw: 0, pitch: 0, dist: 0, fov: 60 };
+            let cur = 0, switching = false, cinematic = false, lastInteract = performance.now(), holdUntil = 0, unlocked = false;
+
+            const stepsEl = $("#steps"), ROMAN = ["I", "II", "III", "IV", "V"];
+            stages.forEach((s, i) => {
+                const b = document.createElement("button"); b.className = "step";
+                b.innerHTML = '<span class="num">' + ROMAN[i] + '</span><span class="name">' + s.name + '</span>';
+                b.setAttribute("aria-label", s.plate + ": " + s.title);
+                b.addEventListener("click", () => goTo(i)); stepsEl.appendChild(b);
+            });
+            function enter(i) {
+                const s = stages[i];
+                Object.assign(T, { yaw: s.init.yaw, pitch: s.init.pitch, dist: s.init.dist || 0, fov: s.init.fov || s.fov });
+                Object.assign(C, T); if (s.mode === "orbit") C.dist = T.dist * 1.7; else C.fov = T.fov * 1.25;
+                $("#plate").textContent = s.plate; $("#title").textContent = s.title; $("#sub").textContent = s.sub;
+                [...stepsEl.children].forEach((b, k) => b.setAttribute("aria-current", k === i ? "true" : "false"));
+                $("#prev").disabled = i === 0; $("#next").disabled = i === stages.length - 1;
+                $("#card").classList.remove("show");
+                $("#snap").classList.toggle("on", unlocked && i === 4);
+                cinematic = false; lastInteract = performance.now();
+            }
+            function goTo(i, after) {
+                if (i === cur || switching || i < 0 || i >= stages.length) return;
+                switching = true; $("#fade").style.opacity = 1; $("#hud").classList.add("out");
+                setTimeout(() => {
+                    cur = i; enter(i); $("#fade").style.opacity = 0; $("#hud").classList.remove("out");
+                    setTimeout(() => { switching = false; if (after) after(); }, 550);
+                }, 560);
+            }
+            $("#prev").addEventListener("click", () => goTo(cur - 1));
+            $("#next").addEventListener("click", () => goTo(cur + 1));
+            $("#cardX").addEventListener("click", () => $("#card").classList.remove("show"));
+
+            /* ---------- Lilium ---------- */
+            let lilStart = 0;
+            function unlockLilium() {
+                if (unlocked) return; unlocked = true; markInteract();
+                const c = norm(lilCenter);
+                cinematic = true;
+                T.yaw = C.yaw + wrapPi(Math.atan2(-c[2], c[0]) - C.yaw);
+                T.pitch = Math.asin(c[1]) - deg(1.1);
+                T.fov = 11;
+                setTimeout(() => { lilStart = performance.now(); }, 1900);
+                setTimeout(() => { lilLabel.hidden = false; $("#fleur").classList.add("show"); }, 2900);
+                setTimeout(() => { if (cur === 0) $("#card").classList.add("show"); cinematic = false; holdUntil = performance.now() + 8000; }, 4200);
+            }
+            let taps = [];
+            ariesLabel.el.addEventListener("click", e => {
+                e.stopPropagation();
+                const now = performance.now(); taps = taps.filter(t => now - t < 2500); taps.push(now);
+                ariesLabel.el.classList.remove("pulse"); void ariesLabel.el.offsetWidth; ariesLabel.el.classList.add("pulse");
+                if (taps.length >= 3) { taps = []; unlockLilium(); }
+            });
+            let typed = "";
+            window.addEventListener("keydown", e => {
+                if (e.key === "ArrowRight") goTo(cur + 1);
+                else if (e.key === "ArrowLeft") goTo(cur - 1);
+                if (e.key.length === 1) {
+                    typed = (typed + e.key.toLowerCase()).slice(-6);
+                    if (typed === "lilium" || typed.endsWith("giglio")) { typed = ""; if (cur === 0) unlockLilium(); else goTo(0, unlockLilium); }
+                }
+            });
+            $("#snap").addEventListener("click", () => {
+                cinematic = true; markInteract();
+                T.yaw = C.yaw + wrapPi(SECRET.yaw - C.yaw); T.pitch = SECRET.pitch; T.dist = SECRET.dist;
+                holdUntil = performance.now() + 15000;
+                setTimeout(() => { cinematic = false; }, 4500);
+            });
+
+            /* ---------- controlli ---------- */
+            const ptrs = new Map(); let pinchD = 0;
+            const pdist = () => { const a = [...ptrs.values()]; return Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y); };
+            function markInteract() { lastInteract = performance.now(); $("#hint").classList.add("out"); }
+            function rotateBy(dx, dy) {
+                cinematic = false; const s = stages[cur];
+                if (s.mode === "sky") { const k = deg(T.fov) / H; T.yaw += dx * k; T.pitch = clamp(T.pitch + dy * k, -1.48, 1.48); }
+                else { T.yaw -= dx * .006; T.pitch = clamp(T.pitch + dy * .006, -1.45, 1.45); }
+            }
+            function zoomBy(delta) {
+                const s = stages[cur], f = Math.exp(delta * .0012);
+                if (s.mode === "sky") T.fov = clamp(T.fov * f, 10, 78); else T.dist = clamp(T.dist * f, s.min, s.max);
+            }
+            canvas.addEventListener("pointerdown", e => {
+                canvas.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+                if (ptrs.size === 2) pinchD = pdist(); canvas.classList.add("drag"); markInteract();
+            });
+            canvas.addEventListener("pointermove", e => {
+                const p = ptrs.get(e.pointerId); if (!p) return;
+                const dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY;
+                if (ptrs.size === 1) rotateBy(dx, dy);
+                else if (ptrs.size === 2) { const d = pdist(); if (pinchD > 0) zoomBy((pinchD - d) * 4); pinchD = d; }
+                markInteract();
+            });
+            const release = e => { ptrs.delete(e.pointerId); pinchD = ptrs.size === 2 ? pdist() : 0; if (!ptrs.size) canvas.classList.remove("drag"); };
+            canvas.addEventListener("pointerup", release); canvas.addEventListener("pointercancel", release);
+            canvas.addEventListener("wheel", e => { e.preventDefault(); zoomBy(e.deltaY); markInteract(); }, { passive: false });
+
+            /* ---------- disegno sopra i punti ---------- */
+            function line(a, b, near) { const p = proj(a, near), q = proj(b, near); if (p && q) { ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y); } }
+            function drawPlanet(pl, pp, sunP) {
+                const rad = pl.size * pp.k; if (rad < .4) return;
+                let lx = sunP ? sunP.x - pp.x : 0, ly = sunP ? sunP.y - pp.y : -1; const l = Math.hypot(lx, ly) || 1; lx /= l; ly /= l;
+                const g = ctx.createRadialGradient(pp.x + lx * rad * .45, pp.y + ly * rad * .45, rad * .05, pp.x, pp.y, rad * 1.1);
+                g.addColorStop(0, pl.light); g.addColorStop(.55, pl.col); g.addColorStop(1, pl.dark);
+                ctx.fillStyle = g; ctx.beginPath(); ctx.arc(pp.x, pp.y, rad, 0, TAU); ctx.fill();
+                if (pl.band && rad > 3) {
+                    ctx.save(); ctx.beginPath(); ctx.arc(pp.x, pp.y, rad, 0, TAU); ctx.clip();
+                    ctx.globalAlpha = .22; ctx.fillStyle = pl.band;
+                    [-.5, -.15, .25, .55].forEach((o, i) => ctx.fillRect(pp.x - rad, pp.y + o * rad, rad * 2, rad * (i % 2 ? .12 : .18)));
+                    ctx.restore(); ctx.globalAlpha = 1;
+                }
+            }
+            function ringSegs(pl, pp) {
+                const back = [], front = [];
+                [1.4, 1.65, 1.9, 2.15].forEach(rr => {
+                    let prev = null;
+                    for (let i = 0; i <= 72; i++) {
+                        const a = i / 72 * TAU, w = add3(pl.pos, mv3(RING_TILT, [Math.cos(a) * rr * pl.size, 0, Math.sin(a) * rr * pl.size])), p = proj(w);
+                        if (prev && p) (((prev.z + p.z) / 2 > pp.z) ? back : front).push([prev, p]);
+                        prev = p;
+                    }
+                });
+                return { back, front };
+            }
+            function strokeSegs(segs, w) {
+                ctx.strokeStyle = "rgba(216,196,154,.4)"; ctx.lineWidth = w; ctx.beginPath();
+                segs.forEach(([a, b]) => { ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); }); ctx.stroke();
+            }
+
+            /* ---------- loop ---------- */
+            const secretDir = dirOf(SECRET.yaw, SECRET.pitch);
+            const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+            const fleurEl = $("#fleur");
+            let last = performance.now(), alignS = 0;
+
+            function frame(now) {
+                const dt = Math.min(.05, (now - last) / 1000); last = now;
+                const s = stages[cur];
+                if (s.mode === "orbit" && !cinematic && now - lastInteract > 4000 && now > holdUntil && !reduce) T.yaw -= dt * s.spin;
+                const k = 1 - Math.exp(-dt * (cinematic ? 1.5 : 10));
+                C.yaw += (T.yaw - C.yaw) * k; C.pitch += (T.pitch - C.pitch) * k; C.dist += (T.dist - C.dist) * k; C.fov += (T.fov - C.fov) * k;
+
+                if (s.mode === "sky") setCam([0, 0, 0], dirOf(C.yaw, C.pitch), C.fov);
+                else { const d = dirOf(C.yaw, C.pitch); setCam([s.center[0] + d[0] * C.dist, s.center[1] + d[1] * C.dist, s.center[2] + d[2] * C.dist], [-d[0], -d[1], -d[2]], s.fov); }
+
+                if (!reduce) {
+                    if (cur === 1) { PLANETS.forEach(p => { p.ang += p.speed * dt; }); moonAng += dt * 1.8; beltAng += dt * .03; }
+                    if (cur === 2) galAng += dt * .02;
+                    if (cur === 3) localAng += dt * .03;
+                }
+                PLANETS.forEach(p => { p.pos = [Math.cos(p.ang) * p.dist, 0, -Math.sin(p.ang) * p.dist]; });
+
+                // punti
+                D32.fill(BG);
+                const skyScale = Math.sqrt(clamp(60 / C.fov, 1, 5));
+                if (s.mode === "orbit") { bgCloud.pos = cam.pos; renderCloud(bgCloud, 1); }
+                if (cur === 0) renderCloud(skyCloud, skyScale);
+                if (cur === 1) { belt.rot = rotY(beltAng); renderCloud(belt, 1); }
+                if (cur === 2) { galaxy.rot = rotY(galAng); renderCloud(galaxy, 1); }
+                if (cur === 3) {
+                    mw.rot = rotY(localAng); m31.rot = mul3(M31_BASE, rotY(localAng * 1.3)); m33.rot = mul3(M33_BASE, rotY(localAng * 1.6));
+                    renderCloud(mw, 1); renderCloud(m31, 1); renderCloud(m33, 1); renderCloud(dwarfs, 1);
+                }
+                if (cur === 4) {
+                    const ang = Math.acos(clamp(dot(dirOf(C.yaw, C.pitch), secretDir), -1, 1)), dr = Math.abs(C.dist / SECRET.dist - 1);
+                    const align = sstep(.16, .02, ang) * sstep(.22, .03, dr);
+                    alignS += (align - alignS) * Math.min(1, dt * 3);
+                    lily.tintAmt = alignS * .85; lily.boost = 1 + alignS * .9;
+                    renderCloud(webCloud, 1); renderCloud(lily, 1);
+                }
+                bctx.putImageData(img, 0, 0);
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
+                ctx.globalCompositeOperation = "copy"; ctx.imageSmoothingEnabled = true;
+                ctx.drawImage(buf, 0, 0, canvas.width, canvas.height);
+                ctx.globalCompositeOperation = "source-over";
+                ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+
+                // linee, pianeti, aloni
+                if (cur === 0) {
+                    ctx.strokeStyle = "rgba(217,181,108,.32)"; ctx.lineWidth = 1; ctx.beginPath();
+                    skySegs.forEach(([a, b]) => line(a, b, 5)); ctx.stroke();
+                    if (lilStart) { lilProg = clamp((now - lilStart) / 2400, 0, 1); if (lilProg >= 1) lilStart = 0; }
+                    if (lilProg > 0) {
+                        ctx.strokeStyle = "rgba(240,207,138,.95)"; ctx.lineWidth = 1.4; ctx.beginPath();
+                        LIL.forEach(([a, z], i) => {
+                            const A = starPos[a], Z = starPos[z], t = clamp(lilProg * LIL.length - i, 0, 1);
+                            if (t > 0) line(A, [A[0] + (Z[0] - A[0]) * t, A[1] + (Z[1] - A[1]) * t, A[2] + (Z[2] - A[2]) * t], 5);
+                        });
+                        ctx.stroke();
+                    }
+                    ctx.globalCompositeOperation = "lighter";
+                    named.forEach(st => {
+                        const p = proj(st.p, 5); if (!p || p.x < -20 || p.x > W + 20 || p.y < -20 || p.y > H + 20) return;
+                        const sz = st.size * skyScale; sprite(st.col, p.x, p.y, sz * 4, .85); sprite("#ffffff", p.x, p.y, sz * 1.2, .9);
+                    });
+                    if (lilProg > 0) ["a33", "a35", "a39", "a41"].forEach(k2 => { const p = proj(starPos[k2], 5); if (p) sprite("#f0cf8a", p.x, p.y, 16 * skyScale, lilProg * .7); });
+                    ctx.globalCompositeOperation = "source-over";
+                }
+                if (cur === 1) {
+                    ctx.strokeStyle = "rgba(217,181,108,.16)"; ctx.lineWidth = 1;
+                    PLANETS.forEach(p => { ctx.beginPath(); let prev = null; p.orbit.forEach(o => { const q = proj(o); if (q) { if (prev) ctx.lineTo(q.x, q.y); else ctx.moveTo(q.x, q.y); } prev = q; }); ctx.stroke(); });
+                    const sunP = proj([0, 0, 0]), items = [];
+                    if (sunP) items.push({
+                        z: sunP.z, draw: () => {
+                            ctx.globalCompositeOperation = "lighter"; sprite("#ffcf7a", sunP.x, sunP.y, 26 * sunP.k, .9); ctx.globalCompositeOperation = "source-over";
+                            const r3 = 3 * sunP.k, g = ctx.createRadialGradient(sunP.x, sunP.y, 0, sunP.x, sunP.y, r3);
+                            g.addColorStop(0, "#fff6d8"); g.addColorStop(.7, "#ffd27e"); g.addColorStop(1, "#ffb84d");
+                            ctx.fillStyle = g; ctx.beginPath(); ctx.arc(sunP.x, sunP.y, r3, 0, TAU); ctx.fill();
+                        }
+                    });
+                    PLANETS.forEach(pl => {
+                        const pp = proj(pl.pos); if (!pp) return;
+                        items.push({
+                            z: pp.z, draw: () => {
+                                let rings = null;
+                                if (pl.name === "Saturno") { rings = ringSegs(pl, pp); strokeSegs(rings.back, Math.max(1, .16 * pl.size * pp.k)); }
+                                drawPlanet(pl, pp, sunP);
+                                if (rings) strokeSegs(rings.front, Math.max(1, .16 * pl.size * pp.k));
+                                if (pl.name === "Terra") {
+                                    const mp = proj([pl.pos[0] + Math.cos(moonAng) * 1.3, 0, pl.pos[2] - Math.sin(moonAng) * 1.3]);
+                                    if (mp) { ctx.fillStyle = "#cfcfcf"; ctx.beginPath(); ctx.arc(mp.x, mp.y, Math.max(.6, .18 * mp.k), 0, TAU); ctx.fill(); }
+                                }
+                            }
+                        });
+                    });
+                    items.sort((a, b) => b.z - a.z).forEach(it => it.draw());
+                }
+                if (cur === 2) {
+                    ctx.globalCompositeOperation = "lighter";
+                    const c0 = proj([0, 0, 0]); if (c0) sprite("#ffd9a0", c0.x, c0.y, 34 * c0.k, .5);
+                    ctx.globalCompositeOperation = "source-over";
+                    const h = proj(hereWorld());
+                    if (h) {
+                        ctx.strokeStyle = "#f0cf8a"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(h.x, h.y, 8, 0, TAU); ctx.stroke();
+                        ctx.fillStyle = "#f0cf8a"; ctx.beginPath(); ctx.arc(h.x, h.y, 2, 0, TAU); ctx.fill();
+                    }
+                }
+                if (cur === 3) {
+                    ctx.globalCompositeOperation = "lighter";
+                    const a = proj([0, 0, 0]); if (a) sprite("#ffd9a0", a.x, a.y, 8 * a.k, .5);
+                    const b = proj(m31.pos); if (b) sprite("#ffe0b0", b.x, b.y, 12 * b.k, .5);
+                    ctx.globalCompositeOperation = "source-over";
+                }
+
+                // etichette e giglio
+                for (const L of labels) {
+                    if (L.stage !== cur || L.hidden) { L.el.style.opacity = 0; continue; }
+                    const p = proj(typeof L.pos === "function" ? L.pos() : L.pos, cur === 0 ? 5 : .05);
+                    if (!p || p.x < -40 || p.x > W + 40 || p.y < -40 || p.y > H + 40) { L.el.style.opacity = 0; continue; }
+                    L.el.style.opacity = 1;
+                    L.el.style.transform = "translate(" + p.x.toFixed(1) + "px," + p.y.toFixed(1) + "px) translate(-50%,-50%)";
+                }
+                if (unlocked && cur === 0) {
+                    const a = proj(lilCenter, 5), b = proj(lilUp, 5);
+                    if (a && b) {
+                        const size = Math.hypot(a.x - b.x, a.y - b.y) * 6.5;
+                        fleurEl.style.width = size + "px"; fleurEl.style.height = size * 1.1 + "px";
+                        fleurEl.style.transform = "translate(" + (a.x - size / 2).toFixed(1) + "px," + (a.y - size * .6).toFixed(1) + "px)";
+                        fleurEl.style.visibility = "visible";
+                    } else fleurEl.style.visibility = "hidden";
+                } else fleurEl.style.visibility = "hidden";
+
+                requestAnimationFrame(frame);
+            }
+            enter(0);
+            requestAnimationFrame(t => { last = t; $("#fade").style.opacity = 0; frame(t); });
+        })();
+    </script>
+</body>
+
+</html>
